@@ -2,13 +2,14 @@ import fs from 'fs';
 import { promisify } from 'util';
 
 import { Disposable } from "./disposable";
+import { clamp } from './util';
 
 type FILE = number;
 const SOFT_PWM_SYSFS = '/sys/class/soft_pwm';
 
 export class PWMController extends Disposable {
     private readonly file: FILE;
-    private timer?: NodeJS.Timer;
+    private timer?: NodeJS.Timeout;
 
     public period = 20000;
     public center = 1500;
@@ -33,7 +34,14 @@ export class PWMController extends Disposable {
             fs.appendFileSync(`${SOFT_PWM_SYSFS}/pwm${this.pin}/period`, `${this.period}`);
             this.file = fs.openSync(`${SOFT_PWM_SYSFS}/pwm${this.pin}/pulse`, 'w');
         } catch (e) {
-            console.error(`Failed to initilize motor ${this.pin}.`);
+            // Try to turn it off if something unexpected happened
+            try {
+                fs.appendFileSync(`${SOFT_PWM_SYSFS}/unexport`, `${this.pin}`);
+            } catch (e) {
+                // swallow this error
+            }
+
+            console.error(`Failed to initialize motor ${this.pin}.`);
             throw e;
         }
     }
@@ -50,8 +58,7 @@ export class PWMController extends Disposable {
      * Can also just write to `this.pulse` directly
      */
     public set(value: number) {
-        value = Math.min(1, value);
-        value = Math.max(-1, value);
+        value = clamp(value, -1, 1);
 
         this.pulse = this.center + (value * this.polarity * this.range);
     }
@@ -76,7 +83,7 @@ export class PWMController extends Disposable {
 
     public dispose() {
         super.dispose();
-        
+
         this.stop();
         fs.closeSync(this.file);
         fs.appendFileSync(`${SOFT_PWM_SYSFS}/unexport`, `${this.pin}`);

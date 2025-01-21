@@ -7,6 +7,7 @@ exports.PWMController = void 0;
 const fs_1 = __importDefault(require("fs"));
 const util_1 = require("util");
 const disposable_1 = require("./disposable");
+const util_2 = require("./util");
 const SOFT_PWM_SYSFS = '/sys/class/soft_pwm';
 class PWMController extends disposable_1.Disposable {
     constructor(pin, config = {}) {
@@ -36,7 +37,14 @@ class PWMController extends disposable_1.Disposable {
             this.file = fs_1.default.openSync(`${SOFT_PWM_SYSFS}/pwm${this.pin}/pulse`, 'w');
         }
         catch (e) {
-            console.error(`Failed to initilize motor ${this.pin}.`);
+            // Try to turn it off if something unexpected happened
+            try {
+                fs_1.default.appendFileSync(`${SOFT_PWM_SYSFS}/unexport`, `${this.pin}`);
+            }
+            catch (e) {
+                // swallow this error
+            }
+            console.error(`Failed to initialize motor ${this.pin}.`);
             throw e;
         }
     }
@@ -51,8 +59,7 @@ class PWMController extends disposable_1.Disposable {
      * Can also just write to `this.pulse` directly
      */
     set(value) {
-        value = Math.min(1, value);
-        value = Math.max(-1, value);
+        value = (0, util_2.clamp)(value, -1, 1);
         this.pulse = this.center + (value * this.polarity * this.range);
     }
     stop() {

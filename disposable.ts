@@ -11,7 +11,7 @@ export class Disposable extends EventEmitter {
 
     public registerDisposable(disposable: Disposable) {
         this.disposables.push(disposable);
-    } 
+    }
 
     public dispose() {
         for (const disposable of this.disposables.reverse()) {

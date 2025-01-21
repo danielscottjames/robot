@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.xboxOneMapper = void 0;
+exports.xboxOneMapper = xboxOneMapper;
 function getButtonName(ev) {
     if (ev.type === "AXIS") {
         switch (ev.number) {
@@ -57,4 +57,3 @@ function xboxOneMapper(ev) {
     }
     return transformed;
 }
-exports.xboxOneMapper = xboxOneMapper;

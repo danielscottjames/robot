@@ -2,7 +2,7 @@
 // Linux Kernel Joystick API Docs:
 // https://www.kernel.org/doc/Documentation/input/joystick-api.txt
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.parseEvent = void 0;
+exports.parseEvent = parseEvent;
 const JS_EVENT_TYPE = {
     // button pressed/released
     JS_EVENT_BUTTON: 0x01,
@@ -37,4 +37,3 @@ function parseEvent(buff) {
         value,
     };
 }
-exports.parseEvent = parseEvent;
